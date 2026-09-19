@@ -1,4 +1,4 @@
-# Create your models here.
+from django.contrib.auth.models import User
 from django.db import models
 
 class Movie(models.Model):
@@ -13,3 +13,19 @@ class Movie(models.Model):
 
     def __str__(self):
         return self.title
+
+class Watchlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "movie"],
+                name="unique_user_movie_watchlist",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.movie.title}"
