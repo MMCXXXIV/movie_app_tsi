@@ -2,9 +2,13 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Movie
-from .serializers import MovieSerializer
 from .services.tmdb import TMDBService
+
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Movie, Watchlist
+from .serializers import MovieSerializer, WatchlistSerializer
+
 
 
 class MovieListCreateView(generics.ListCreateAPIView):
@@ -42,3 +46,20 @@ class MovieTMDBDetailView(APIView):
     def get(self, request, tmdb_id):
         movie = TMDBService().get_movie_details(tmdb_id)
         return Response(movie)
+
+class WatchlistView(generics.ListCreateAPIView):
+    serializer_class = WatchlistSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Watchlist.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class WatchlistDetailView(generics.DestroyAPIView):
+    serializer_class = WatchlistSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Watchlist.objects.filter(user=self.request.user)

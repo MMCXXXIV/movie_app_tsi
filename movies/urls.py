@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import MovieListCreateView, MovieDetailView, PopularMoviesView, MovieSearchView, MovieTMDBDetailView
+from .views import (
+    MovieListCreateView,
+    MovieDetailView,
+    PopularMoviesView,
+    MovieSearchView,
+    MovieTMDBDetailView,
+    WatchlistView,
+    WatchlistDetailView,
+)
 from .auth_views import CurrentUserView, RegisterView
 
 urlpatterns = [
@@ -10,4 +18,6 @@ urlpatterns = [
     path("tmdb/<int:tmdb_id>/", MovieTMDBDetailView.as_view(), name="movie-tmdb-detail"),
     path("auth/me/", CurrentUserView.as_view(), name="current-user"),
     path("auth/register/", RegisterView.as_view(), name="register"),
+    path("watchlist/", WatchlistView.as_view(), name="watchlist"),
+    path("watchlist/<int:pk>/", WatchlistDetailView.as_view(), name="watchlist-detail"),
 ]
