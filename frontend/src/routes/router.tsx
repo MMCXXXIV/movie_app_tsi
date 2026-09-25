@@ -7,7 +7,7 @@ import WatchlistPage from "../pages/WatchlistPage";
 import FavoritesPage from "../pages/FavoritesPage";
 import HistoryPage from "../pages/HistoryPage";
 
-createBrowserRouter([
+export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/movies", element: <MoviesPage /> },
