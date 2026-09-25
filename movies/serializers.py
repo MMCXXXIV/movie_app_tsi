@@ -20,12 +20,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 class WatchlistSerializer(serializers.ModelSerializer):
-    movie = serializers.SlugRelatedField(
-        slug_field="tmdb_id",
-        queryset=Movie.objects.all(),
-    )
+    movie = MovieSerializer(read_only=True)
+    movie_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Watchlist
-        fields = ["id", "movie", "created_at"]
+        fields = ["id", "movie", "movie_id", "created_at"]
         read_only_fields = ["id", "created_at"]
+
+    def create(self, validated_data):
+        movie_id = validated_data.pop("movie_id")
+        movie = Movie.objects.get(tmdb_id=movie_id)
+
+        return Watchlist.objects.create(
+            movie=movie,
+            **validated_data,
+        )
