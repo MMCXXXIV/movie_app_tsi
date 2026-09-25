@@ -29,3 +29,27 @@ class Watchlist(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.movie.title}"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "movie"],
+                name="unique_user_movie_favorite",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.movie.title}"
+
+class ViewingHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    watched_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.movie.title}"

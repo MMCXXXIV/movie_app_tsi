@@ -6,8 +6,8 @@ from .services.tmdb import TMDBService
 
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Movie, Watchlist
-from .serializers import MovieSerializer, WatchlistSerializer
+from .models import Favorite, Movie, Watchlist, ViewingHistory
+from .serializers import FavoriteSerializer, MovieSerializer, WatchlistSerializer, ViewingHistorySerializer
 
 
 
@@ -63,3 +63,31 @@ class WatchlistDetailView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Watchlist.objects.filter(user=self.request.user)
+
+class FavoriteView(generics.ListCreateAPIView):
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FavoriteDetailView(generics.DestroyAPIView):
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+
+class ViewingHistoryView(generics.ListCreateAPIView):
+    serializer_class = ViewingHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ViewingHistory.objects.filter(user=self.request.user).order_by("-watched_at")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
