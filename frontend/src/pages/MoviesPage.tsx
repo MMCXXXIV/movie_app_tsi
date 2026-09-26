@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Movie } from "../types/movie";
 import { getPopularMovies } from "../services/movieService";
 import MovieCard from "../components/MovieCard";
+import "../styles/pages/MoviesPage.scss";
 
 const MoviesPage = () => {
   const [movies, setMovies] = useState<Movie[]>([]);

@@ -1,5 +1,6 @@
 import type { Movie } from "../types/movie";
 import { imageURL } from "../utils/image";
+import "../styles/components/MovieCard.scss";
 
 type MovieCardProps = {
   movie: Movie;
