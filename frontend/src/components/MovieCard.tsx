@@ -8,10 +8,14 @@ type MovieCardProps = {
 
 const MovieCard = ({ movie }: MovieCardProps) => {
   return (
-    <div>
-      <h2>{movie.title}</h2>
-      <p>{movie.overview}</p>
-      <img src={imageURL(movie.poster_path)} alt={movie.title} />
+    <div className="movie-card">
+      <h2 className="title">{movie.title}</h2>
+      <p className="description">{movie.overview}</p>
+      <img
+        className="poster"
+        src={imageURL(movie.poster_path)}
+        alt={movie.title}
+      />
     </div>
   );
 };

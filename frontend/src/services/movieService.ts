@@ -8,3 +8,18 @@ export async function getPopularMovies(): Promise<PopularMoviesResponse> {
 
   return response.data;
 }
+
+export async function searchMovies(
+  search: string
+): Promise<PopularMoviesResponse> {
+  const response = await apiClient.get<PopularMoviesResponse>(
+    "/movies/search/",
+    {
+      params: {
+        query: search,
+      },
+    }
+  );
+
+  return response.data;
+}
