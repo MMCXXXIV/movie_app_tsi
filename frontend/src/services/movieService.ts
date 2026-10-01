@@ -1,4 +1,4 @@
-import type { PopularMoviesResponse } from "../types/movie";
+import type { MovieDetails, PopularMoviesResponse } from "../types/movie";
 import { apiClient } from "./api";
 
 export async function getPopularMovies(): Promise<PopularMoviesResponse> {
@@ -20,6 +20,12 @@ export async function searchMovies(
       },
     }
   );
+
+  return response.data;
+}
+
+export async function getMovieDetails(id: number): Promise<MovieDetails> {
+  const response = await apiClient.get<MovieDetails>(`/movies/tmdb/${id}/`);
 
   return response.data;
 }

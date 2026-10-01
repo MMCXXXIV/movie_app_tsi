@@ -1,0 +1,29 @@
+.movie-details {
+    max-width: 1440px;
+    display: flex;
+    gap: 40px;
+    margin: auto;
+    margin-top: 2%;
+    background-color: rgb(238, 236, 236);
+    box-shadow: 0 0 100px 60px rgba(161, 161, 161, 0.315);
+}
+
+.movie-details__image {
+    width: 300px;
+    height: auto;
+    object-fit: cover;
+}
+
+.movie-details__information {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .movie-details {
+        flex-direction: column;
+    }
+
+    .movie-details__image {
+        max-width: 100%;
+    }
+}
