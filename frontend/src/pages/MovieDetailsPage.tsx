@@ -5,6 +5,7 @@ import type { MovieDetails } from "../types/movie";
 import { imageURL } from "../utils/image";
 import fallback from "../assets/fallback.png";
 import "../styles/pages/MovieDetailsPage.scss";
+import { Badge, Group, Stack, Text, Title } from "@mantine/core";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
@@ -40,9 +41,9 @@ const MovieDetailsPage = () => {
   return (
     <div>
       {loading ? (
-        <p>Loading...</p>
+        <Text>Loading...</Text>
       ) : error ? (
-        <p>{error}</p>
+        <Text>{error}</Text>
       ) : movie ? (
         <div className="movie-details">
           <img
@@ -50,23 +51,27 @@ const MovieDetailsPage = () => {
             src={movie.poster_path ? imageURL(movie.poster_path) : fallback}
             alt={movie.title}
           />
-          <div className="movie-details__information">
-            <h2>{movie.title}</h2>
-            <p>{movie.tagline}</p>
-            <p>
-              {movie.release_date} | {movie.runtime} | {movie.status}
-            </p>
-            {movie.genres.map((genre) => (
-              <p key={genre.id}>{genre.name}</p>
-            ))}
-            <p>
-              {movie.vote_average} / {movie.vote_count}
-            </p>
-            <p>{movie.overview}</p>
-          </div>
+          <Stack gap="md" className="movie-details__information">
+            <Title>{movie.title}</Title>
+            <Text>{movie.tagline}</Text>
+            <Group>
+              <Text>Release: {movie.release_date}</Text>
+              <Text>Runtime: {movie.runtime} min</Text>
+              <Text>Status: {movie.status}</Text>
+            </Group>
+            <Group gap="xs">
+              {movie.genres.map((genre) => (
+                <Badge key={genre.id}>{genre.name}</Badge>
+              ))}
+            </Group>
+            <Text>
+              Rating: {movie.vote_average} (Votes: {movie.vote_count})
+            </Text>
+            <Text>{movie.overview}</Text>
+          </Stack>
         </div>
       ) : (
-        <p>No movie to render</p>
+        <Text>No movie to render</Text>
       )}
     </div>
   );
