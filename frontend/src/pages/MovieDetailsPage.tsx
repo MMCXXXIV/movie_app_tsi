@@ -5,7 +5,7 @@ import type { MovieDetails } from "../types/movie";
 import { imageURL } from "../utils/image";
 import fallback from "../assets/fallback.png";
 import "../styles/pages/MovieDetailsPage.scss";
-import { Badge, Group, Stack, Text, Title } from "@mantine/core";
+import { Badge, Group, Rating, Stack, Text, Title } from "@mantine/core";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
@@ -38,6 +38,10 @@ const MovieDetailsPage = () => {
     fetchMovieDetails();
   }, [id]);
 
+  function adjustRating(rating: number) {
+    return (rating / 10) * 5;
+  }
+
   return (
     <div>
       {loading ? (
@@ -53,8 +57,8 @@ const MovieDetailsPage = () => {
           />
           <Stack gap="md" className="movie-details__information">
             <Title>{movie.title}</Title>
-            <Text>{movie.tagline}</Text>
-            <Group>
+            {movie.tagline && <Text>{movie.tagline}</Text>}
+            <Group wrap="wrap">
               <Text>Release: {movie.release_date}</Text>
               <Text>Runtime: {movie.runtime} min</Text>
               <Text>Status: {movie.status}</Text>
@@ -64,9 +68,11 @@ const MovieDetailsPage = () => {
                 <Badge key={genre.id}>{genre.name}</Badge>
               ))}
             </Group>
-            <Text>
-              Rating: {movie.vote_average} (Votes: {movie.vote_count})
-            </Text>
+            <Group>
+              <Rating value={adjustRating(movie.vote_average)} readOnly />
+              <Text>Rating: {movie.vote_average}</Text>
+              <Text>Votes: {movie.vote_count}</Text>
+            </Group>
             <Text>{movie.overview}</Text>
           </Stack>
         </div>
