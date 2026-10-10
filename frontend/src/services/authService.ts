@@ -1,3 +1,4 @@
+import type { AuthMe } from "../types/auth";
 import { setAccessToken, setRefreshToken } from "../utils/authStorage";
 import { apiClient } from "./api";
 
@@ -19,4 +20,9 @@ export async function login(username: string, password: string): Promise<void> {
 export function setAuthTokens(access: string, refresh: string) {
   setAccessToken(access);
   setRefreshToken(refresh);
+}
+
+export async function authMe(): Promise<AuthMe> {
+  const response = await apiClient.get<AuthMe>("/movies/auth/me/");
+  return response.data;
 }
