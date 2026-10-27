@@ -1,4 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
+import Layout from "../components/Layout";
+
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import MoviesPage from "../pages/MoviesPage";
@@ -8,11 +10,16 @@ import FavoritesPage from "../pages/FavoritesPage";
 import HistoryPage from "../pages/HistoryPage";
 
 export const router = createBrowserRouter([
+  {
+    element: <Layout />,
+    children: [
+      { path: "/movies", element: <MoviesPage /> },
+      { path: "/movies/:id", element: <MovieDetailsPage /> },
+      { path: "/watchlist", element: <WatchlistPage /> },
+      { path: "/favorites", element: <FavoritesPage /> },
+      { path: "/history", element: <HistoryPage /> },
+    ],
+  },
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
-  { path: "/movies", element: <MoviesPage /> },
-  { path: "/movies/:id", element: <MovieDetailsPage /> },
-  { path: "/watchlist", element: <WatchlistPage /> },
-  { path: "/favorites", element: <FavoritesPage /> },
-  { path: "/history", element: <HistoryPage /> },
 ]);
