@@ -5,6 +5,7 @@ export type AuthContextType = {
   user: AuthMe | null;
   loading: boolean;
   checkAuth: () => Promise<void>;
+  logout: () => void;
 };
 
 export type AuthProviderProps = {

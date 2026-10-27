@@ -1,11 +1,14 @@
 import { useState, type SubmitEvent } from "react";
 import { login } from "../services/authService";
+import { useAuth } from "../hooks/useAuth";
 
 const LoginPage = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const { checkAuth } = useAuth();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -14,6 +17,7 @@ const LoginPage = () => {
 
     try {
       await login(username, password);
+      await checkAuth();
     } catch {
       setError("Something went wrong with login...");
     } finally {

@@ -1,5 +1,9 @@
 import type { AuthMe } from "../types/auth";
-import { setAccessToken, setRefreshToken } from "../utils/authStorage";
+import {
+  clearTokens,
+  setAccessToken,
+  setRefreshToken,
+} from "../utils/authStorage";
 import { apiClient } from "./api";
 
 type AuthResponse = {
@@ -25,4 +29,8 @@ export function setAuthTokens(access: string, refresh: string) {
 export async function authMe(): Promise<AuthMe> {
   const response = await apiClient.get<AuthMe>("/movies/auth/me/");
   return response.data;
+}
+
+export function logout(): void {
+  clearTokens();
 }

@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import type { AuthMe } from "../types/auth";
 import type { AuthProviderProps } from "../types/authContext";
-import { authMe } from "../services/authService";
+import { authMe, logout as logoutService } from "../services/authService";
 import { getAccessToken, clearTokens } from "../utils/authStorage";
 import { AuthContext } from "./authContext";
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthMe | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   async function checkAuth() {
     try {
       const token = getAccessToken();
 
       if (!token) {
+        setUser(null);
         return;
       }
 
@@ -25,6 +26,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
+  }
+
+  function logout() {
+    logoutService();
+    setUser(null);
   }
 
   useEffect(() => {
@@ -62,13 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        checkAuth,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, checkAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );
