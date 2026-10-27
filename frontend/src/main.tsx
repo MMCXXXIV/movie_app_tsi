@@ -5,11 +5,14 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./routes/router";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import { AuthProvider } from "./context/AuthContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </MantineProvider>
   </StrictMode>
 );
