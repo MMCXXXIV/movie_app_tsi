@@ -1,6 +1,7 @@
 import type { Movie } from "../types/movie";
 import { imageURL } from "../utils/image";
 import "../styles/components/MovieCard.scss";
+import { Link } from "react-router-dom";
 
 type MovieCardProps = {
   movie: Movie;
@@ -8,7 +9,7 @@ type MovieCardProps = {
 
 const MovieCard = ({ movie }: MovieCardProps) => {
   return (
-    <div className="movie-card">
+    <Link to={`/movies/${movie.id}`} className="movie-card">
       <h2 className="title">{movie.title}</h2>
       <p className="description">{movie.overview}</p>
       <img
@@ -16,7 +17,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
         src={imageURL(movie.poster_path)}
         alt={movie.title}
       />
-    </div>
+    </Link>
   );
 };
 

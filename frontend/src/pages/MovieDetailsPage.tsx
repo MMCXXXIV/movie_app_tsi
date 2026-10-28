@@ -19,9 +19,11 @@ const MovieDetailsPage = () => {
 
       if (!id || Number.isNaN(movieId)) {
         setError("Wrong Movie ID");
+        setLoading(false);
         return;
       }
 
+      setMovie(null);
       setLoading(true);
       setError(null);
 
@@ -70,7 +72,7 @@ const MovieDetailsPage = () => {
             </Group>
             <Group>
               <Rating value={adjustRating(movie.vote_average)} readOnly />
-              <Text>Rating: {movie.vote_average}</Text>
+              <Text>Rating: {movie.vote_average.toFixed(1)} / 10</Text>
               <Text>Votes: {movie.vote_count}</Text>
             </Group>
             <Text>{movie.overview}</Text>

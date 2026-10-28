@@ -29,14 +29,17 @@ const MoviesPage = () => {
   }, []);
 
   async function handleSearch() {
-    if (search.trim() === "") return;
-
     setLoading(true);
     setError(null);
 
     try {
-      const response = await searchMovies(search);
-      setMovies(response.results);
+      if (search.trim() === "") {
+        const response = await getPopularMovies();
+        setMovies(response.results);
+      } else {
+        const response = await searchMovies(search.trim());
+        setMovies(response.results);
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
