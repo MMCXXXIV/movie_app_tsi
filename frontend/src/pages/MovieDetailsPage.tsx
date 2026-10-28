@@ -5,50 +5,134 @@ import type { MovieDetails } from "../types/movie";
 import { imageURL } from "../utils/image";
 import fallback from "../assets/fallback.png";
 import "../styles/pages/MovieDetailsPage.scss";
-import { Badge, Group, Rating, Stack, Text, Title } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Group,
+  Rating,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import {
+  addToWatchlist,
+  getWatchlist,
+  removeFromWatchlist,
+} from "../services/watchlistService";
+import type { WatchlistEntry } from "../types/watchlist";
+import { useAuth } from "../hooks/useAuth";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+
   const [movie, setMovie] = useState<MovieDetails | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [watchlist, setWatchlist] = useState<WatchlistEntry[] | null>(null);
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchMovieDetails() {
       const movieId = Number(id);
 
-      if (!id || Number.isNaN(movieId)) {
+      setMovie(null);
+      setError(null);
+      setLoading(true);
+      setWatchlist(null);
+      setWatchlistLoading(user !== null);
+
+      if (!id || !Number.isInteger(movieId) || movieId <= 0) {
         setError("Wrong Movie ID");
         setLoading(false);
+        setWatchlistLoading(false);
         return;
       }
 
-      setMovie(null);
-      setLoading(true);
-      setError(null);
-
       try {
         const response = await getMovieDetails(movieId);
+
+        if (cancelled) return;
         setMovie(response);
+
+        if (user !== null) {
+          const watchlistResponse = await getWatchlist();
+
+          if (cancelled) return;
+          setWatchlist(watchlistResponse);
+        } else {
+          setWatchlist([]);
+        }
       } catch {
-        setError("Something went wrong. Please try again.");
+        if (!cancelled) {
+          setError("Something went wrong. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setWatchlistLoading(false);
+        }
       }
     }
 
-    fetchMovieDetails();
-  }, [id]);
+    void fetchMovieDetails();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, user]);
 
   function adjustRating(rating: number) {
     return (rating / 10) * 5;
+  }
+
+  const movieId = Number(id);
+
+  const watchlistEntry =
+    watchlist?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
+
+  const isInWatchlist = watchlistEntry !== null;
+
+  async function handleAddToWatchlist() {
+    if (!id || watchlist === null || watchlistLoading) return;
+
+    setError(null);
+    setWatchlistLoading(true);
+
+    try {
+      if (watchlistEntry) {
+        await removeFromWatchlist(watchlistEntry.id);
+
+        setWatchlist(
+          (current) =>
+            current?.filter((item) => item.id !== watchlistEntry.id) ?? []
+        );
+      } else {
+        const newEntry = await addToWatchlist(movieId);
+
+        setWatchlist((current) => [...(current ?? []), newEntry]);
+      }
+    } catch {
+      setError("Could not update your watchlist. Please try again.");
+
+      try {
+        const updatedWatchlist = await getWatchlist();
+        setWatchlist(updatedWatchlist);
+      } catch {
+        setWatchlist(null);
+      }
+    } finally {
+      setWatchlistLoading(false);
+    }
   }
 
   return (
     <div>
       {loading ? (
         <Text>Loading...</Text>
-      ) : error ? (
+      ) : error && !movie ? (
         <Text>{error}</Text>
       ) : movie ? (
         <div className="movie-details">
@@ -57,24 +141,47 @@ const MovieDetailsPage = () => {
             src={movie.poster_path ? imageURL(movie.poster_path) : fallback}
             alt={movie.title}
           />
+
           <Stack gap="md" className="movie-details__information">
-            <Title>{movie.title}</Title>
+            <Group justify="space-between">
+              <Title>{movie.title}</Title>
+
+              {user && (
+                <Button
+                  onClick={handleAddToWatchlist}
+                  disabled={watchlistLoading || watchlist === null}
+                >
+                  {watchlistLoading
+                    ? "Loading..."
+                    : isInWatchlist
+                    ? "Remove"
+                    : "Add"}
+                </Button>
+              )}
+            </Group>
+
+            {error && <Text c="red">{error}</Text>}
+
             {movie.tagline && <Text>{movie.tagline}</Text>}
+
             <Group wrap="wrap">
               <Text>Release: {movie.release_date}</Text>
               <Text>Runtime: {movie.runtime} min</Text>
               <Text>Status: {movie.status}</Text>
             </Group>
+
             <Group gap="xs">
               {movie.genres.map((genre) => (
                 <Badge key={genre.id}>{genre.name}</Badge>
               ))}
             </Group>
+
             <Group>
               <Rating value={adjustRating(movie.vote_average)} readOnly />
               <Text>Rating: {movie.vote_average.toFixed(1)} / 10</Text>
               <Text>Votes: {movie.vote_count}</Text>
             </Group>
+
             <Text>{movie.overview}</Text>
           </Stack>
         </div>
