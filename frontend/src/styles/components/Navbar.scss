@@ -1,0 +1,89 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 72px;
+    padding: 0.75rem clamp(1rem, 4vw, 3rem);
+    background: #141820;
+    border-bottom: 1px solid #2b303b;
+    color: #f5f5f5;
+
+    &__brand {
+        flex-shrink: 0;
+        color: #f5f5f5;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        text-decoration: none;
+    }
+
+    &__links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        flex: 1;
+    }
+
+    &__link {
+        padding: 0.65rem 0.85rem;
+        border-radius: 8px;
+        color: #b7becb;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition:
+            background-color 150ms ease,
+            color 150ms ease;
+
+        &:hover {
+            background: #252b36;
+            color: #fff;
+        }
+
+        &--active {
+            background: #252b36;
+            color: #fff;
+        }
+    }
+
+    &__account {
+        flex-shrink: 0;
+    }
+
+    &__username {
+        color: #c4cad5;
+    }
+}
+
+@media (max-width: 700px) {
+    .navbar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+
+        &__brand {
+            margin-right: auto;
+        }
+
+        &__links {
+            order: 3;
+            flex-basis: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        &__link {
+            padding: 0.55rem 0.65rem;
+        }
+
+        &__account {
+            gap: 0.35rem;
+        }
+
+        &__username {
+            display: none;
+        }
+    }
+}

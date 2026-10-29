@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "../components/Layout";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -15,9 +16,14 @@ export const router = createBrowserRouter([
     children: [
       { path: "/movies", element: <MoviesPage /> },
       { path: "/movies/:id", element: <MovieDetailsPage /> },
-      { path: "/watchlist", element: <WatchlistPage /> },
-      { path: "/favorites", element: <FavoritesPage /> },
-      { path: "/history", element: <HistoryPage /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "/watchlist", element: <WatchlistPage /> },
+          { path: "/favorites", element: <FavoritesPage /> },
+          { path: "/history", element: <HistoryPage /> },
+        ],
+      },
     ],
   },
   { path: "/login", element: <LoginPage /> },
