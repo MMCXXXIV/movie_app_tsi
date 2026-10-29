@@ -19,8 +19,13 @@ import {
   getWatchlist,
   removeFromWatchlist,
 } from "../services/watchlistService";
-import type { WatchlistEntry } from "../types/watchlist";
+import type { UserMovieEntry } from "../types/watchlist";
 import { useAuth } from "../hooks/useAuth";
+import {
+  addToFavorites,
+  getFavorites,
+  removeFromFavorites,
+} from "../services/favoritesService";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
@@ -29,8 +34,10 @@ const MovieDetailsPage = () => {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [watchlist, setWatchlist] = useState<WatchlistEntry[] | null>(null);
+  const [watchlist, setWatchlist] = useState<UserMovieEntry[] | null>(null);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [favorite, setFavorite] = useState<UserMovieEntry[] | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,11 +50,14 @@ const MovieDetailsPage = () => {
       setLoading(true);
       setWatchlist(null);
       setWatchlistLoading(user !== null);
+      setFavorite(null);
+      setFavoriteLoading(user !== null);
 
       if (!id || !Number.isInteger(movieId) || movieId <= 0) {
         setError("Wrong Movie ID");
         setLoading(false);
         setWatchlistLoading(false);
+        setFavoriteLoading(false);
         return;
       }
 
@@ -59,11 +69,13 @@ const MovieDetailsPage = () => {
 
         if (user !== null) {
           const watchlistResponse = await getWatchlist();
-
+          const favoriteResponse = await getFavorites();
           if (cancelled) return;
           setWatchlist(watchlistResponse);
+          setFavorite(favoriteResponse);
         } else {
           setWatchlist([]);
+          setFavorite([]);
         }
       } catch {
         if (!cancelled) {
@@ -73,6 +85,7 @@ const MovieDetailsPage = () => {
         if (!cancelled) {
           setLoading(false);
           setWatchlistLoading(false);
+          setFavoriteLoading(false);
         }
       }
     }
@@ -89,11 +102,12 @@ const MovieDetailsPage = () => {
   }
 
   const movieId = Number(id);
-
   const watchlistEntry =
     watchlist?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
-
   const isInWatchlist = watchlistEntry !== null;
+  const favoriteEntry =
+    favorite?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
+  const isInFavorite = favoriteEntry !== null;
 
   async function handleAddToWatchlist() {
     if (!id || watchlist === null || watchlistLoading) return;
@@ -128,6 +142,39 @@ const MovieDetailsPage = () => {
     }
   }
 
+  async function handleAddToFavorite() {
+    if (!id || favorite === null || favoriteLoading) return;
+
+    setError(null);
+    setFavoriteLoading(true);
+
+    try {
+      if (favoriteEntry) {
+        await removeFromFavorites(favoriteEntry.id);
+
+        setFavorite(
+          (current) =>
+            current?.filter((item) => item.id !== favoriteEntry.id) ?? []
+        );
+      } else {
+        const newEntry = await addToFavorites(movieId);
+
+        setFavorite((current) => [...(current ?? []), newEntry]);
+      }
+    } catch {
+      setError("Could not update your favorites. Please try again.");
+
+      try {
+        const updatedFavorite = await getFavorites();
+        setFavorite(updatedFavorite);
+      } catch {
+        setFavorite(null);
+      }
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
+
   return (
     <div>
       {loading ? (
@@ -147,16 +194,35 @@ const MovieDetailsPage = () => {
               <Title>{movie.title}</Title>
 
               {user && (
-                <Button
-                  onClick={handleAddToWatchlist}
-                  disabled={watchlistLoading || watchlist === null}
-                >
-                  {watchlistLoading
-                    ? "Loading..."
-                    : isInWatchlist
-                    ? "Remove"
-                    : "Add"}
-                </Button>
+                <Group>
+                  <Button
+                    onClick={handleAddToWatchlist}
+                    disabled={watchlistLoading || watchlist === null}
+                  >
+                    <Text>
+                      Watchlist :{" "}
+                      {watchlistLoading
+                        ? "Loading..."
+                        : isInWatchlist
+                        ? "Remove"
+                        : "Add"}
+                    </Text>
+                  </Button>
+
+                  <Button
+                    onClick={handleAddToFavorite}
+                    disabled={favoriteLoading || favorite === null}
+                  >
+                    <Text>
+                      Favorite:{" "}
+                      {favoriteLoading
+                        ? "Loading..."
+                        : isInFavorite
+                        ? "Remove"
+                        : "Add"}
+                    </Text>
+                  </Button>
+                </Group>
               )}
             </Group>
 
