@@ -84,7 +84,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
             movie=movie,
             **validated_data,
         )
-
+    
 class ViewingHistorySerializer(serializers.ModelSerializer):
     movie = MovieSerializer(read_only=True)
     movie_id = serializers.IntegerField(write_only=True)
@@ -113,7 +113,9 @@ class ViewingHistorySerializer(serializers.ModelSerializer):
                 vote_count=tmdb_movie.get("vote_count", 0),
             )
 
-        return ViewingHistory.objects.create(
+        entry, created = ViewingHistory.objects.get_or_create(
+            user=validated_data["user"],
             movie=movie,
-            **validated_data,
         )
+
+        return entry

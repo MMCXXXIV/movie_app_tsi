@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views import (
     FavoriteView,
     FavoriteDetailView,
@@ -10,6 +11,7 @@ from .views import (
     WatchlistView,
     WatchlistDetailView,
     ViewingHistoryView,
+    ViewingHistoryDetailView,
 )
 from .auth_views import CurrentUserView, RegisterView
 
@@ -26,4 +28,5 @@ urlpatterns = [
     path("favorites/", FavoriteView.as_view(), name="favorite"),
     path("favorites/<int:pk>/", FavoriteDetailView.as_view(), name="favorite-detail"),
     path("history/", ViewingHistoryView.as_view(), name="viewing-history"),
+    path("history/<int:pk>/", ViewingHistoryDetailView.as_view(), name="viewing-history-detail"),
 ]

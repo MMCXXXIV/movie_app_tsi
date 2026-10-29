@@ -6,6 +6,7 @@ import { imageURL } from "../utils/image";
 import fallback from "../assets/fallback.png";
 import "../styles/pages/MovieDetailsPage.scss";
 import {
+  Alert,
   Badge,
   Button,
   Group,
@@ -26,6 +27,12 @@ import {
   getFavorites,
   removeFromFavorites,
 } from "../services/favoritesService";
+import {
+  addToHistory,
+  getHistory,
+  removeFromHistory,
+} from "../services/historyService";
+import type { HistoryEntry } from "../types/history";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
@@ -34,16 +41,21 @@ const MovieDetailsPage = () => {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [watchlist, setWatchlist] = useState<UserMovieEntry[] | null>(null);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+
   const [favorite, setFavorite] = useState<UserMovieEntry[] | null>(null);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  const [history, setHistory] = useState<HistoryEntry[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchMovieDetails() {
-      const movieId = Number(id);
+      const currentMovieId = Number(id);
 
       setMovie(null);
       setError(null);
@@ -52,30 +64,37 @@ const MovieDetailsPage = () => {
       setWatchlistLoading(user !== null);
       setFavorite(null);
       setFavoriteLoading(user !== null);
+      setHistory(null);
+      setHistoryLoading(user !== null);
 
-      if (!id || !Number.isInteger(movieId) || movieId <= 0) {
+      if (!id || !Number.isInteger(currentMovieId) || currentMovieId <= 0) {
         setError("Wrong Movie ID");
         setLoading(false);
         setWatchlistLoading(false);
         setFavoriteLoading(false);
+        setHistoryLoading(false);
         return;
       }
 
       try {
-        const response = await getMovieDetails(movieId);
+        const response = await getMovieDetails(currentMovieId);
 
         if (cancelled) return;
         setMovie(response);
 
         if (user !== null) {
-          const watchlistResponse = await getWatchlist();
-          const favoriteResponse = await getFavorites();
+          const [watchlistResponse, favoriteResponse, historyResponse] =
+            await Promise.all([getWatchlist(), getFavorites(), getHistory()]);
+
           if (cancelled) return;
+
           setWatchlist(watchlistResponse);
           setFavorite(favoriteResponse);
+          setHistory(historyResponse);
         } else {
           setWatchlist([]);
           setFavorite([]);
+          setHistory([]);
         }
       } catch {
         if (!cancelled) {
@@ -86,6 +105,7 @@ const MovieDetailsPage = () => {
           setLoading(false);
           setWatchlistLoading(false);
           setFavoriteLoading(false);
+          setHistoryLoading(false);
         }
       }
     }
@@ -102,12 +122,18 @@ const MovieDetailsPage = () => {
   }
 
   const movieId = Number(id);
+
   const watchlistEntry =
     watchlist?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
   const isInWatchlist = watchlistEntry !== null;
+
   const favoriteEntry =
     favorite?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
   const isInFavorite = favoriteEntry !== null;
+
+  const historyEntry =
+    history?.find((entry) => entry.movie.tmdb_id === movieId) ?? null;
+  const isInHistory = historyEntry !== null;
 
   async function handleAddToWatchlist() {
     if (!id || watchlist === null || watchlistLoading) return;
@@ -118,22 +144,19 @@ const MovieDetailsPage = () => {
     try {
       if (watchlistEntry) {
         await removeFromWatchlist(watchlistEntry.id);
-
         setWatchlist(
           (current) =>
             current?.filter((item) => item.id !== watchlistEntry.id) ?? []
         );
       } else {
         const newEntry = await addToWatchlist(movieId);
-
         setWatchlist((current) => [...(current ?? []), newEntry]);
       }
     } catch {
       setError("Could not update your watchlist. Please try again.");
 
       try {
-        const updatedWatchlist = await getWatchlist();
-        setWatchlist(updatedWatchlist);
+        setWatchlist(await getWatchlist());
       } catch {
         setWatchlist(null);
       }
@@ -151,27 +174,54 @@ const MovieDetailsPage = () => {
     try {
       if (favoriteEntry) {
         await removeFromFavorites(favoriteEntry.id);
-
         setFavorite(
           (current) =>
             current?.filter((item) => item.id !== favoriteEntry.id) ?? []
         );
       } else {
         const newEntry = await addToFavorites(movieId);
-
         setFavorite((current) => [...(current ?? []), newEntry]);
       }
     } catch {
       setError("Could not update your favorites. Please try again.");
 
       try {
-        const updatedFavorite = await getFavorites();
-        setFavorite(updatedFavorite);
+        setFavorite(await getFavorites());
       } catch {
         setFavorite(null);
       }
     } finally {
       setFavoriteLoading(false);
+    }
+  }
+
+  async function handleToggleHistory() {
+    if (!user || !id || history === null || historyLoading) return;
+
+    setError(null);
+    setHistoryLoading(true);
+
+    try {
+      if (historyEntry) {
+        await removeFromHistory(historyEntry.id);
+        setHistory(
+          (current) =>
+            current?.filter((entry) => entry.id !== historyEntry.id) ?? []
+        );
+      } else {
+        const newEntry = await addToHistory(movieId);
+        setHistory((current) => [...(current ?? []), newEntry]);
+      }
+    } catch {
+      setError("Could not update viewing history. Please try again.");
+
+      try {
+        setHistory(await getHistory());
+      } catch {
+        setHistory(null);
+      }
+    } finally {
+      setHistoryLoading(false);
     }
   }
 
@@ -196,42 +246,49 @@ const MovieDetailsPage = () => {
               {user && (
                 <Group>
                   <Button
-                    onClick={handleAddToWatchlist}
-                    disabled={watchlistLoading || watchlist === null}
+                    onClick={() => void handleAddToWatchlist()}
+                    loading={watchlistLoading}
+                    disabled={watchlist === null}
                   >
-                    <Text>
-                      Watchlist :{" "}
-                      {watchlistLoading
-                        ? "Loading..."
-                        : isInWatchlist
-                        ? "Remove"
-                        : "Add"}
-                    </Text>
+                    Watchlist:{" "}
+                    {watchlistLoading
+                      ? "Loading..."
+                      : isInWatchlist
+                      ? "Remove"
+                      : "Add"}
                   </Button>
 
                   <Button
-                    onClick={handleAddToFavorite}
-                    disabled={favoriteLoading || favorite === null}
+                    onClick={() => void handleAddToFavorite()}
+                    loading={favoriteLoading}
+                    disabled={favorite === null}
                   >
-                    <Text>
-                      Favorite:{" "}
-                      {favoriteLoading
-                        ? "Loading..."
-                        : isInFavorite
-                        ? "Remove"
-                        : "Add"}
-                    </Text>
+                    Favorite:{" "}
+                    {favoriteLoading
+                      ? "Loading..."
+                      : isInFavorite
+                      ? "Remove"
+                      : "Add"}
+                  </Button>
+
+                  <Button
+                    onClick={() => void handleToggleHistory()}
+                    loading={historyLoading}
+                    disabled={history === null}
+                    variant={isInHistory ? "filled" : "light"}
+                  >
+                    {isInHistory ? "Remove from history" : "Mark as watched"}
                   </Button>
                 </Group>
               )}
             </Group>
 
-            {error && <Text c="red">{error}</Text>}
+            {error && <Alert color="red">{error}</Alert>}
 
             {movie.tagline && <Text>{movie.tagline}</Text>}
 
             <Group wrap="wrap">
-              <Text>Release: {movie.release_date}</Text>
+              <Text>Release: {movie.release_date || "Unknown"}</Text>
               <Text>Runtime: {movie.runtime} min</Text>
               <Text>Status: {movie.status}</Text>
             </Group>

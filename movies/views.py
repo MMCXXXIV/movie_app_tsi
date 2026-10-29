@@ -91,3 +91,11 @@ class ViewingHistoryView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class ViewingHistoryDetailView(generics.DestroyAPIView):
+    serializer_class = ViewingHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ViewingHistory.objects.filter(user=self.request.user)
