@@ -1,5 +1,8 @@
+
 import requests
 from django.conf import settings
+
+from movies.services.mongodb import cache_movie
 
 
 class TMDBService:
@@ -16,10 +19,15 @@ class TMDBService:
             f"{self.BASE_URL}/movie/popular",
             headers=self.headers,
             params={"language": "en-US", "page": page},
+            timeout=10,
         )
-
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+
+        for movie in data.get("results", []):
+            cache_movie(movie)
+
+        return data
 
     def search_movies(self, query, page=1):
         response = requests.get(
@@ -30,17 +38,25 @@ class TMDBService:
                 "language": "en-US",
                 "page": page,
             },
+            timeout=10,
         )
-
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+
+        for movie in data.get("results", []):
+            cache_movie(movie)
+
+        return data
 
     def get_movie_details(self, tmdb_id):
         response = requests.get(
             f"{self.BASE_URL}/movie/{tmdb_id}",
             headers=self.headers,
             params={"language": "en-US"},
+            timeout=10,
         )
-
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+
+        cache_movie(data)
+        return data
