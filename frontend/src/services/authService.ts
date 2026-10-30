@@ -11,6 +11,13 @@ type AuthResponse = {
   refresh: string;
 };
 
+type RegisterData = {
+  username: string;
+  email: string;
+  password: string;
+  password2: string;
+};
+
 export async function login(username: string, password: string): Promise<void> {
   const response = await apiClient.post<AuthResponse>("/auth/token/", {
     username,
@@ -21,7 +28,11 @@ export async function login(username: string, password: string): Promise<void> {
   setAuthTokens(access, refresh);
 }
 
-export function setAuthTokens(access: string, refresh: string) {
+export async function register(data: RegisterData): Promise<void> {
+  await apiClient.post("/movies/auth/register/", data);
+}
+
+export function setAuthTokens(access: string, refresh: string): void {
   setAccessToken(access);
   setRefreshToken(refresh);
 }
